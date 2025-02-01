@@ -6,7 +6,8 @@ const UploadScreen = ({ setBackgroundImage }) => {
     const file = e.target.files[0];
     if (file) {
       const url = URL.createObjectURL(file);
-      setBackgroundImage(url);
+      // オリジナルのファイル名と URL をオブジェクトとして渡す
+      setBackgroundImage({ url, name: file.name });
     }
   };
 

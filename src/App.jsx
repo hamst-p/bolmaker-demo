@@ -6,7 +6,7 @@ import UploadScreen from './components/UploadScreen';
 import EditScreen from './components/EditScreen';
 
 const App = () => {
-  // 背景画像（ユーザーアップロード）とオーバーレイ画像の状態管理
+  // 背景画像はオブジェクト { url, name } として管理
   const [backgroundImage, setBackgroundImage] = useState(null);
   const [overlay, setOverlay] = useState({
     x: 100,
@@ -20,7 +20,6 @@ const App = () => {
     <div className="app-container">
       <Header />
       <main className="main-content">
-        {/* 背景画像が未アップロードの場合はアップロード画面を表示 */}
         {!backgroundImage ? (
           <UploadScreen setBackgroundImage={setBackgroundImage} />
         ) : (

@@ -1,5 +1,3 @@
-/* index.css */
-
 /* リセット */
 * {
   box-sizing: border-box;
@@ -7,15 +5,22 @@
   padding: 0;
 }
 
-/* body：セーフエリア下部のパディングを追加 */
 body {
   font-family: Arial, sans-serif;
   background-color: #f7f7f7;
   color: #333;
+  /* セーフエリア下部パディング */
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* .app-container：JavaScript で設定した --vh を利用して正確な高さに */
+/* PCの場合、スクロールを抑制してウィンドウサイズに固定 */
+@media (hover: hover) and (pointer: fine) {
+  html, body {
+    overflow: hidden;
+  }
+}
+
+/* .app-container の高さを実際の内側の高さに合わせる */
 .app-container {
   display: flex;
   flex-direction: column;

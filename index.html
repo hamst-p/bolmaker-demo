@@ -2,12 +2,12 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <!-- viewport-fit=cover を追加し、セーフエリアも利用 -->
+    <!-- viewport-fit=cover を指定してセーフエリアも利用 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Bolmaker</title>
     <link rel="stylesheet" href="/src/index.css" />
     <script>
-      // 画面の実際に表示される高さ（address bar やツールバーを除く）を基に --vh を設定
+      // 実際に表示される内側の高さ（address bar やツールバーを除いた高さ）の1%を計算して--vhにセット
       function setVh() {
         let vh = window.innerHeight * 0.01;
         document.documentElement.style.setProperty('--vh', `${vh}px`);

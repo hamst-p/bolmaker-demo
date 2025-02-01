@@ -34,12 +34,11 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
     const canvasWidth = canvas.width;
     const canvasHeight = canvas.height;
 
-    // キャンバスをクリア
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
     // 背景画像の描画（アスペクト比を維持して中央寄せ）
     const bgImg = new Image();
-    bgImg.src = backgroundImage;
+    bgImg.src = backgroundImage.url;
     bgImg.onload = () => {
       const imgAspect = bgImg.naturalWidth / bgImg.naturalHeight;
       const canvasAspect = canvasWidth / canvasHeight;
@@ -57,7 +56,7 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
       }
       ctx.drawImage(bgImg, drawX, drawY, drawWidth, drawHeight);
 
-      // オーバーレイ画像（bolhat.png）の描画
+      // オーバーレイ画像の描画
       const overlayImg = new Image();
       overlayImg.src = '/bolhat.png';
       overlayImg.onload = () => {
@@ -78,7 +77,6 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
     };
   };
 
-  // 背景画像や overlay の状態が変化したときに再描画
   useEffect(() => {
     drawComposite();
   }, [backgroundImage, overlay]);
@@ -112,7 +110,6 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
-    // シンプルな矩形判定（回転の影響は考慮していません）
     if (
       mouseX >= overlay.x &&
       mouseX <= overlay.x + overlay.width &&
@@ -131,7 +128,6 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
     if (e.shiftKey) {
-      // Shift キー押下時：ドラッグの水平移動量を回転角度に換算
       const deltaRotation = e.movementX / 10;
       setOverlay((prev) => ({ ...prev, rotation: prev.rotation + deltaRotation }));
     } else {
@@ -170,7 +166,6 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     if (e.touches.length === 1) {
-      // 1本指タッチ：ドラッグ操作
       const touch = e.touches[0];
       const touchX = touch.clientX - rect.left;
       const touchY = touch.clientY - rect.top;
@@ -184,7 +179,6 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
         setDragOffset({ x: touchX - overlay.x, y: touchY - overlay.y });
       }
     } else if (e.touches.length === 2) {
-      // 2本指タッチ：ピンチ（拡大縮小）および回転操作
       e.preventDefault();
       const [touch1, touch2] = e.touches;
       const dx = touch2.clientX - touch1.clientX;
@@ -252,7 +246,6 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
   };
 
   // ── モバイル用プレビューボタン ──
-  // PCではダウンロードボタン、モバイルではプレビューボタンを表示
   const handlePreview = () => {
     drawComposite();
     setTimeout(() => {
@@ -264,6 +257,7 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
   };
 
   // ── ローカル保存（PC用） ──
+  // 保存時のファイル名は、アップロード時のファイル名に _bol を付加して生成
   const handleLocalSave = () => {
     drawComposite();
     setTimeout(() => {
@@ -273,7 +267,15 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
           console.error('Failed to convert canvas to Blob');
           return;
         }
-        const file = new File([blob], 'bolmaker_collage.png', { type: 'image/png' });
+        const originalName = backgroundImage.name;
+        const dotIndex = originalName.lastIndexOf(".");
+        let newName;
+        if (dotIndex !== -1) {
+          newName = originalName.slice(0, dotIndex) + "_bol" + originalName.slice(dotIndex);
+        } else {
+          newName = originalName + "_bol";
+        }
+        const file = new File([blob], newName, { type: 'image/png' });
         if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
           navigator.share({
             files: [file],
@@ -285,7 +287,7 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
         } else {
           const dataURL = canvas.toDataURL('image/png');
           const link = document.createElement('a');
-          link.download = 'bolmaker_collage.png';
+          link.download = newName;
           link.href = dataURL;
           link.click();
         }
@@ -321,7 +323,7 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
             }}
             title="Preview"
           >
-            {/* プレビューボタン用のアイコン（例：下向きの矢印＋枠） */}
+            {/* プレビューボタン用アイコン */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="32"
@@ -348,7 +350,7 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
             }}
             title="Save to Local"
           >
-            {/* ダウンロードアイコン（Feather Icons由来） */}
+            {/* ダウンロードアイコン */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="32"
@@ -367,7 +369,6 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
           </button>
         )}
       </div>
-      {/* プレビューモーダル（モバイルの場合） */}
       {isMobile && showPreview && (
         <div
           style={{
