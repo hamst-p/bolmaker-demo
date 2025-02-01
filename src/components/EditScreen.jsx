@@ -21,11 +21,15 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
   // モバイル判定（簡易的なユーザーエージェント判定）
   const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
+  // 最大拡大サイズの設定（必要に応じて調整）
+  const MAX_OVERLAY_WIDTH = 1000;
+  const MAX_OVERLAY_HEIGHT = 1000;
+
   /**
    * drawComposite
    *
-   * キャンバスに背景画像とオーバーレイ画像（bolhat.png）を描画します。
-   * ※ 赤い枠線や回転ハンドルは描画していません。
+   * キャンバスに背景画像とオーバーレイ画像（bolhat.png）を描画し、
+   * 右下に透過0.75のグレー文字ウォーターマーク "fuckitwebol" を追加します。
    */
   const drawComposite = () => {
     const canvas = canvasRef.current;
@@ -73,6 +77,19 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
           overlay.height
         );
         ctx.restore();
+
+        // ウォーターマークの描画（右下に、透過0.75のグレー文字）
+        ctx.save();
+        ctx.globalAlpha = 0.75;
+        ctx.fillStyle = 'gray';
+        ctx.font = '16px sans-serif';
+        const watermarkText = 'fuckitwebol';
+        const margin = 10;
+        const textWidth = ctx.measureText(watermarkText).width;
+        const xPos = canvasWidth - textWidth - margin;
+        const yPos = canvasHeight - margin;
+        ctx.fillText(watermarkText, xPos, yPos);
+        ctx.restore();
       };
     };
   };
@@ -104,7 +121,6 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
   }, []);
 
   // ── PC用マウスイベント ──
-
   const handleCanvasMouseDown = (e) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
@@ -151,7 +167,13 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
       mouseY >= overlay.y &&
       mouseY <= overlay.y + overlay.height
     ) {
-      const scaleFactor = e.deltaY < 0 ? 1.05 : 0.95;
+      let scaleFactor = e.deltaY < 0 ? 1.05 : 0.95;
+      // 最大サイズ制限を適用
+      const newWidth = overlay.width * scaleFactor;
+      const newHeight = overlay.height * scaleFactor;
+      if (newWidth > MAX_OVERLAY_WIDTH || newHeight > MAX_OVERLAY_HEIGHT) {
+        scaleFactor = 1; // 拡大しない
+      }
       setOverlay((prev) => ({
         ...prev,
         width: prev.width * scaleFactor,
@@ -161,7 +183,6 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
   };
 
   // ── モバイル用タッチイベント ──
-
   const handleTouchStart = (e) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
@@ -257,7 +278,6 @@ const EditScreen = ({ backgroundImage, overlay, setOverlay }) => {
   };
 
   // ── ローカル保存（PC用） ──
-  // 保存時のファイル名は、アップロード時のファイル名に _bol を付加して生成
   const handleLocalSave = () => {
     drawComposite();
     setTimeout(() => {
